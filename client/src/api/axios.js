@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  // In production both are on same domain so just use /api
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
 });
 
 api.interceptors.request.use(cfg => {
