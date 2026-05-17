@@ -1,0 +1,10 @@
+const router = require("express").Router();
+const c = require("../controllers/gigController");
+const { protect, sellerOnly } = require("../middleware/auth");
+router.get("/", c.getGigs);
+router.get("/my-gigs", protect, sellerOnly, c.getMyGigs);
+router.get("/:id", c.getGig);
+router.post("/", protect, sellerOnly, c.createGig);
+router.put("/:id", protect, sellerOnly, c.updateGig);
+router.delete("/:id", protect, sellerOnly, c.deleteGig);
+module.exports = router;
