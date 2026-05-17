@@ -1,12 +1,23 @@
 import axios from "axios";
-const api = axios.create({ baseURL: "/api" });
+
+const api = axios.create({
+  // In production both are on same domain so just use /api
+  baseURL: "/api",
+});
+
 api.interceptors.request.use(cfg => {
   const token = localStorage.getItem("fh_token");
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
 });
+
 api.interceptors.response.use(r => r, err => {
-  if (err.response?.status === 401) { localStorage.removeItem("fh_token"); localStorage.removeItem("fh_user"); window.location.href = "/login"; }
+  if (err.response?.status === 401) {
+    localStorage.removeItem("fh_token");
+    localStorage.removeItem("fh_user");
+    window.location.href = "/login";
+  }
   return Promise.reject(err);
 });
+
 export default api;
