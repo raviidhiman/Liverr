@@ -1,0 +1,33 @@
+# Optional Render "Blueprint". You can also create the service by hand (see README).
+services:
+  - type: web
+    name: liverr-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false        # paste your MongoDB Atlas URI in the Render dashboard
+      - key: CLIENT_URL
+        sync: false        # your Vercel URL, e.g. https://liverr.vercel.app
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: Liverr <onboarding@resend.dev>
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: ALLOW_DEV_OTP
+        value: "false"
+      - key: ALLOW_MOCK_PAYMENTS
+        value: "false"
