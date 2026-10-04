@@ -4,12 +4,30 @@ const isReal = (v) => v && !/dummy|your_|change_me|example/i.test(v);
 
 /**
  * Providers, in order of priority:
- *  1. Resend HTTP API  (RESEND_API_KEY)   -> works on Render free tier (HTTPS, not SMTP)
- *  2. SMTP             (EMAIL_HOST/USER/PASS) -> great locally with a Gmail app password
- *  3. none             -> OTP is printed in the server console (local dev only)
+ *  1. Brevo HTTP API   (BREVO_API_KEY)    -> works on Render free tier; can email anyone once a sender is verified
+ *  2. Resend HTTP API  (RESEND_API_KEY)   -> works on Render free tier; sandbox only emails your own address until a domain is verified
+ *  3. SMTP             (EMAIL_HOST/USER/PASS) -> great locally with a Gmail app password
+ *  4. none             -> OTP is printed in the server console (local dev only)
  * Returns { delivered: boolean }.
  */
+// "Liverr <me@x.com>"  ->  { name: "Liverr", email: "me@x.com" }
+const parseFrom = (v) => {
+  const m = String(v || "").match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  return m ? { name: m[1].trim() || "Liverr", email: m[2].trim() } : { name: "Liverr", email: String(v || "").trim() };
+};
+
 const sendMail = async (to, subject, html) => {
+  if (isReal(process.env.BREVO_API_KEY)) {
+    const sender = parseFrom(process.env.EMAIL_FROM);
+    if (!sender.email) throw new Error("EMAIL_FROM must be set to your verified Brevo sender, e.g. Liverr <you@gmail.com>");
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": process.env.BREVO_API_KEY.trim(), "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html }),
+    });
+    if (!res.ok) throw new Error(`Brevo error ${res.status}: ${await res.text()}`);
+    return { delivered: true };
+  }
   if (isReal(process.env.RESEND_API_KEY)) {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
